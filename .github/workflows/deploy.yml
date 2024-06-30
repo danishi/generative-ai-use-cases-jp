@@ -45,4 +45,4 @@ jobs:
         run: npm ci
 
       - name: Deploy
-        run: npm run cdk:deploy
+        run: npm run cdk:deploy --require-approval never
