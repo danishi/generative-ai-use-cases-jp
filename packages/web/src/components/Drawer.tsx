@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { BaseProps } from '../@types/common';
 import { Link, useLocation } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
 import useSWR from 'swr';
 import useDrawer from '../hooks/useDrawer';
 import useVersion from '../hooks/useVersion';
@@ -15,6 +14,7 @@ import {
 import BedrockIcon from '../assets/bedrock.svg?react';
 import ExpandableMenu from './ExpandableMenu';
 import ChatList from './ChatList';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 export type ItemProps = BaseProps & {
   label: string;
@@ -94,12 +94,12 @@ const Drawer: React.FC<Props> = (props) => {
   const { getHasUpdate } = useVersion();
 
   // 第一引数は不要だが、ないとリクエストされないため 'user' 文字列を入れる
-  const { data } = useSWR('user', async () => {
-    return await Auth.currentAuthenticatedUser();
+  const { data } = useSWR('user', () => {
+    return fetchAuthSession();
   });
 
-  const email = useMemo(() => {
-    return data?.signInUserSession?.idToken?.payload?.email ?? '';
+  const email = useMemo<string>(() => {
+    return (data?.tokens?.idToken?.payload.email ?? '') as string;
   }, [data]);
 
   const hasUpdate = getHasUpdate();
@@ -125,7 +125,7 @@ const Drawer: React.FC<Props> = (props) => {
       <nav
         className={`bg-aws-squid-ink flex h-screen w-64 flex-col justify-between text-sm text-white  print:hidden`}>
         <div className="text-aws-smile mx-3 my-2 text-xs">
-          ユースケース <span className="text-gray-400">(生成AI)</span>
+          ユースケース <span className="text-gray-400">(生成 AI)</span>
         </div>
         <div className="scrollbar-thin scrollbar-thumb-white ml-2 mr-1 h-full overflow-y-auto">
           {usecases.map((item, idx) => (
@@ -143,7 +143,7 @@ const Drawer: React.FC<Props> = (props) => {
           <>
             <ExpandableMenu
               title="ツール"
-              subTitle="(AIサービス)"
+              subTitle="(AI サービス)"
               className="mx-3 my-2 text-xs">
               <div className="mb-2 ml-2 mr-1">
                 {tools.map((item, idx) => (
